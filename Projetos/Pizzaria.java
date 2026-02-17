@@ -33,7 +33,7 @@ public class Pizzaria {
                     fazerPedido(scanner, listaPedidos, listaClientes);
                     break;
                 case 2:
-                    alterarPedido();
+                    alterarPedido(scanner, listaPedidos, listaClientes);
                     break;
                 case 3:
                     listaClientes.add(adicionarCliente(scanner));
@@ -139,8 +139,98 @@ public class Pizzaria {
         return valorTotal;
     }
 
-    private static void alterarPedido() {
-        System.out.println("Alterar pedido");
+    private static void alterarPedido(Scanner scanner, List<Pedido> listaPedidos, List<Cliente> listaClientes) {
+        if (listaPedidos.isEmpty()) {
+            System.out.println("Nenhum pedido disponível para alterar!");
+            return;
+        }
+
+        System.out.println("ALTERAR PEDIDO");
+        System.out.println();
+        System.out.println("Buscar pedido por:");
+        System.out.println("1 - ID do pedido");
+        System.out.println("2 - Nome do cliente");
+        System.out.print("Opção: ");
+        int opcaoBusca = scanner.nextInt();
+        scanner.nextLine();
+
+        Pedido pedidoSelecionado = null;
+
+        if (opcaoBusca == 1) {
+            System.out.print("Digite o ID do pedido: ");
+            int idPedido = scanner.nextInt();
+            scanner.nextLine();
+
+            for (Pedido pedido : listaPedidos) {
+                if (pedido.getId() == idPedido) {
+                    pedidoSelecionado = pedido;
+                    break;
+                }
+            }
+        } else if (opcaoBusca == 2) {
+            System.out.print("Digite o nome do cliente: ");
+            String nomeCliente = scanner.nextLine();
+
+            for (Pedido pedido : listaPedidos) {
+                if (pedido.getCliente().getNome().equalsIgnoreCase(nomeCliente)) {
+                    pedidoSelecionado = pedido;
+                    break;
+                }
+            }
+        }
+
+        if (pedidoSelecionado == null) {
+            System.out.println("Pedido não encontrado!");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("Pedido encontrado!");
+        System.out.println("Cliente: " + pedidoSelecionado.getCliente().getNome());
+        System.out.println("Pizzas no pedido:");
+
+        List<Pizza> pizzas = pedidoSelecionado.getPizzas();
+        for (int i = 0; i < pizzas.size(); i++) {
+            Pizza pizza = pizzas.get(i);
+            System.out.println((i + 1) + " - Tamanho: " + pizza.getTamanho() + ", Sabores: " + pizza.getSabores() + ", Preço: R$ " + pizza.getPreco());
+        }
+        System.out.println();
+
+        boolean continuar = true;
+        while (continuar) {
+            System.out.println("O que deseja fazer?");
+            System.out.println("1 - Adicionar pizza");
+            System.out.println("2 - Remover pizza");
+            System.out.println("3 - Alterar sabor de uma pizza");
+            System.out.println("4 - Finalizar alterações");
+            System.out.print("Opção: ");
+            int opcaoAlteracao = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (opcaoAlteracao) {
+                case 1:
+                    pedidoSelecionado.adicionarPizza(scanner);
+                    System.out.println("Pizza adicionada com sucesso!");
+                    break;
+                case 2:
+                    pedidoSelecionado.removerPizza(scanner);
+                    break;
+                case 3:
+                    pedidoSelecionado.alterarSaborPizza(scanner);
+                    break;
+                case 4:
+                    continuar = false;
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
+                    break;
+            }
+            System.out.println();
+        }
+
+        pedidoSelecionado.setValorTotal(somarPizzas(pedidoSelecionado.getPizzas()));
+        System.out.println("Pedido alterado com sucesso!");
+        System.out.println("Valor total do pedido: R$ " + pedidoSelecionado.getValorTotal());
     }
 
     private static Cliente adicionarCliente(Scanner scanner) {
