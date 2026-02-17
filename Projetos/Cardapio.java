@@ -46,7 +46,7 @@ public class Cardapio {
     for (String sabor : saboresEncontrados) {
       precoTotal += cardapio.get(sabor) / totalSabores;
     }
-
+    
     return precoTotal;
   }
 }
