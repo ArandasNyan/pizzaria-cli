@@ -114,7 +114,8 @@ public class Pizzaria {
             pizzas.add(pizza);
 
             System.out.println();
-            exibirSucesso("Pizza #" + pizzaCount + " cadastrada - " + pizza.getTamanho() + " - R$ " + String.format("%.2f", pizza.getPreco()));
+            exibirSucesso("Pizza #" + pizzaCount + " cadastrada - " + pizza.getTamanho() + " - R$ "
+                    + String.format("%.2f", pizza.getPreco()));
             System.out.println();
             System.out.println("Deseja adicionar mais uma pizza? (1-Sim / 2-Não): ");
             System.out.print("Opção: ");
@@ -126,21 +127,21 @@ public class Pizzaria {
             }
             System.out.println();
         }
-        
+
         double totalPizzas = somarPizzas(pizzas);
-        
+
         System.out.println();
         System.out.print("Digite a distância em kms para o endereço do cliente: ");
         double distanciaEmKm = scanner.nextDouble();
         scanner.nextLine();
         System.out.println();
-        
+
         double valorFrete = calcularFrete(distanciaEmKm, pizzas.size());
         double totalComFrete = totalPizzas + valorFrete;
-        
+
         Pedido pedido = new Pedido(listaPedidos.size() + 1, listaClientes.get(cliente - 1), pizzas, totalComFrete);
         listaPedidos.add(pedido);
-        
+
         System.out.println();
         exibirSeparador();
         exibirSucesso("PEDIDO #" + pedido.getId() + " CRIADO COM SUCESSO!");
@@ -173,7 +174,7 @@ public class Pizzaria {
         exibirCabecalho("ALTERAR PEDIDO");
 
         System.out.println("Buscar pedido por:");
-        System.out.println("1 - ID do pedido"); // 
+        System.out.println("1 - ID do pedido"); //
         System.out.println("2 - Nome do cliente");
         System.out.print("Opção: ");
         int opcaoBusca = scanner.nextInt();
@@ -223,7 +224,8 @@ public class Pizzaria {
 
         for (int i = 0; i < pizzas.size(); i++) {
             Pizza pizza = pizzas.get(i);
-            System.out.println((i + 1) + ") Tamanho: " + pizza.getTamanho() + " | Sabores: " + pizza.getSabores() + " | R$ " + String.format("%.2f", pizza.getPreco()));
+            System.out.println((i + 1) + ") Tamanho: " + pizza.getTamanho() + " | Sabores: " + pizza.getSabores()
+                    + " | R$ " + String.format("%.2f", pizza.getPreco()));
         }
 
         System.out.println("Valor total: R$ " + String.format("%.2f", pedidoSelecionado.getValorTotal()));
@@ -267,6 +269,7 @@ public class Pizzaria {
         }
 
         pedidoSelecionado.setValorTotal(somarPizzas(pedidoSelecionado.getPizzas()));
+
         System.out.println();
         exibirSeparador();
         exibirSucesso("PEDIDO #" + pedidoSelecionado.getId() + " ALTERADO COM SUCESSO!");
@@ -353,10 +356,15 @@ public class Pizzaria {
         System.out.println("Faturamento total: R$ " + String.format("%.2f", faturamentoTotal));
         System.out.println();
 
-        // preparar lista de sabores ordenada por contagem (maior para menor) usando ordenação bubble sort.
-        List<Map.Entry<String, Integer>> listaSaboresOrdenada = new ArrayList<Map.Entry<String, Integer>>(contagemPorSabor.entrySet());
+        // preparar lista de sabores ordenada por contagem (maior para menor) usando
+        // ordenação bubble sort.
+        List<Map.Entry<String, Integer>> listaSaboresOrdenada = new ArrayList<Map.Entry<String, Integer>>(
+                contagemPorSabor.entrySet());
 
-        Ordenacao.bubbleSort(listaSaboresOrdenada, (a, b) -> Integer.compare(b.getValue(), a.getValue())); // ordenação bubble sort
+        // ordenção de popularidade
+        Ordenacao.bubbleSort(listaSaboresOrdenada, (a, b) -> Integer.compare(b.getValue(), a.getValue())); // ordenação
+                                                                                                           // bubble
+                                                                                                           // sort
 
         System.out.println("Sabores mais pedidos:");
         int posicao = 1;
@@ -371,7 +379,7 @@ public class Pizzaria {
         for (Map.Entry<String, Map<String, Integer>> entradaCo : saboresAdjacentes.entrySet()) {
             String saborChave = entradaCo.getKey();
             Map<String, Integer> mapaAdjacentes = entradaCo.getValue();
-            
+
             for (Map.Entry<String, Integer> entradaAdj : mapaAdjacentes.entrySet()) {
                 String saborAdjacente = entradaAdj.getKey();
 
@@ -391,7 +399,8 @@ public class Pizzaria {
             System.out.println("Nenhuma ligação encontrada (pizzas com 1 sabor ou sem pedidos).");
         } else {
             for (Aresta aresta : listaArestas) {
-                System.out.println("- " + aresta.saborOrigem + " -- " + aresta.saborDestino + " : " + aresta.peso + " vezes");
+                System.out.println(
+                        "- " + aresta.saborOrigem + " -- " + aresta.saborDestino + " : " + aresta.peso + " vezes");
             }
         }
 
@@ -400,13 +409,13 @@ public class Pizzaria {
 
     private static void gerarListaClientes(List<Cliente> listaClientes) {
         exibirCabecalho("LISTA DE CLIENTES");
-        
+
         if (listaClientes.isEmpty()) {
             exibirErro("Nenhum cliente cadastrado.");
             System.out.println();
             return;
         }
-        
+
         int x = 1;
         for (Cliente cliente : listaClientes) {
             exibirSecao("Cliente #" + x);
@@ -423,8 +432,8 @@ public class Pizzaria {
 
     private static double calcularFrete(double distanciaEmKm, int quantidadePizzas) {
         // Tabela de preços para cálculo de frete
-        double valorPorKm = 2.5; // R$ 2,50 por km
-        double valorPorPizza = 3.0; // R$ 3,00 por pizza
+        double valorPorKm = 1.5; // R$ 1,50 por km
+        double valorPorPizza = 2.0; // R$ 2,00 por pizza
 
         // Calcular frete por distância
         double freteDistancia = distanciaEmKm * valorPorKm;
