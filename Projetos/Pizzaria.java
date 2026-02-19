@@ -1,8 +1,6 @@
 package Projetos;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 import Projetos.Pizza.TamanhoPizza;
 
@@ -129,8 +127,18 @@ public class Pizzaria {
             System.out.println();
         }
         
-        double total = somarPizzas(pizzas);
-        Pedido pedido = new Pedido(listaPedidos.size() + 1, listaClientes.get(cliente - 1), pizzas, total);
+        double totalPizzas = somarPizzas(pizzas);
+        
+        System.out.println();
+        System.out.print("Digite a distância em kms para o endereço do cliente: ");
+        double distanciaEmKm = scanner.nextDouble();
+        scanner.nextLine();
+        System.out.println();
+        
+        double valorFrete = calcularFrete(distanciaEmKm, pizzas.size());
+        double totalComFrete = totalPizzas + valorFrete;
+        
+        Pedido pedido = new Pedido(listaPedidos.size() + 1, listaClientes.get(cliente - 1), pizzas, totalComFrete);
         listaPedidos.add(pedido);
         
         System.out.println();
@@ -138,7 +146,10 @@ public class Pizzaria {
         exibirSucesso("PEDIDO #" + pedido.getId() + " CRIADO COM SUCESSO!");
         System.out.println("Cliente: " + pedido.getCliente().getNome());
         System.out.println("Total de pizzas: " + pizzas.size());
-        System.out.println("Valor total: R$ " + String.format("%.2f", total));
+        System.out.println("Valor das pizzas: R$ " + String.format("%.2f", totalPizzas));
+        System.out.println("Distância: " + String.format("%.2f", distanciaEmKm) + " km");
+        System.out.println("Valor do frete: R$ " + String.format("%.2f", valorFrete));
+        System.out.println("Valor total: R$ " + String.format("%.2f", totalComFrete));
         exibirSeparador();
         System.out.println();
     }
@@ -282,7 +293,109 @@ public class Pizzaria {
     }
 
     private static void gerarRelatorio(List<Pedido> listaPedidos) {
-        exibirCabecalho("Gerar Relatório");
+        exibirCabecalho("RELATÓRIO DE VENDAS");
+
+        // Verifica se a lista de pedidos possui pedidos
+        if (listaPedidos == null || listaPedidos.isEmpty()) {
+            exibirErro("Nenhum pedido registrado.");
+            System.out.println();
+            return;
+        }
+
+        double faturamentoTotal = 0.0;
+        Map<String, Integer> contagemPorSabor = new HashMap<String, Integer>();
+        Map<String, Map<String, Integer>> saboresAdjacentes = new HashMap<String, Map<String, Integer>>();
+
+        for (Pedido pedido : listaPedidos) {
+            faturamentoTotal += pedido.getValorTotal();
+            for (Pizza pizza : pedido.getPizzas()) {
+                List<String> listaSabores = pizza.getSabores();
+
+                // contar cada sabor
+                for (String sabor : listaSabores) {
+                    if (contagemPorSabor.containsKey(sabor)) {
+                        contagemPorSabor.put(sabor, contagemPorSabor.get(sabor) + 1); // se já existir, somar em mais 1
+                    } else {
+                        contagemPorSabor.put(sabor, 1); // se não existir, inicializar em 1
+                    }
+                }
+
+                // contar co-ocorrências entre pares de sabores na mesma pizza
+                for (int i = 0; i < listaSabores.size(); i++) {
+                    for (int j = i + 1; j < listaSabores.size(); j++) {
+                        String saborPrimeiro = listaSabores.get(i);
+                        String saborSegundo = listaSabores.get(j);
+
+                        if (!saboresAdjacentes.containsKey(saborPrimeiro)) {
+                            saboresAdjacentes.put(saborPrimeiro, new HashMap<String, Integer>());
+                        }
+                        Map<String, Integer> mapaPrimeiro = saboresAdjacentes.get(saborPrimeiro);
+                        if (mapaPrimeiro.containsKey(saborSegundo)) {
+                            mapaPrimeiro.put(saborSegundo, mapaPrimeiro.get(saborSegundo) + 1);
+                        } else {
+                            mapaPrimeiro.put(saborSegundo, 1);
+                        }
+
+                        if (!saboresAdjacentes.containsKey(saborSegundo)) {
+                            saboresAdjacentes.put(saborSegundo, new HashMap<String, Integer>());
+                        }
+                        Map<String, Integer> mapaSegundo = saboresAdjacentes.get(saborSegundo);
+                        if (mapaSegundo.containsKey(saborPrimeiro)) {
+                            mapaSegundo.put(saborPrimeiro, mapaSegundo.get(saborPrimeiro) + 1);
+                        } else {
+                            mapaSegundo.put(saborPrimeiro, 1);
+                        }
+                    }
+                }
+            }
+        }
+
+        System.out.println("Faturamento total: R$ " + String.format("%.2f", faturamentoTotal));
+        System.out.println();
+
+        // preparar lista de sabores ordenada por contagem (maior para menor) usando ordenação bubble sort.
+        List<Map.Entry<String, Integer>> listaSaboresOrdenada = new ArrayList<Map.Entry<String, Integer>>(contagemPorSabor.entrySet());
+
+        Ordenacao.bubbleSort(listaSaboresOrdenada, (a, b) -> Integer.compare(b.getValue(), a.getValue())); // ordenação bubble sort
+
+        System.out.println("Sabores mais pedidos:");
+        int posicao = 1;
+        for (Map.Entry<String, Integer> entradaSabor : listaSaboresOrdenada) {
+            System.out.println(posicao + " - " + entradaSabor.getKey() + " (" + entradaSabor.getValue() + " pedidos)");
+            posicao++;
+        }
+        System.out.println();
+
+        List<Aresta> listaArestas = new ArrayList<Aresta>();
+
+        for (Map.Entry<String, Map<String, Integer>> entradaCo : saboresAdjacentes.entrySet()) {
+            String saborChave = entradaCo.getKey();
+            Map<String, Integer> mapaAdjacentes = entradaCo.getValue();
+            
+            for (Map.Entry<String, Integer> entradaAdj : mapaAdjacentes.entrySet()) {
+                String saborAdjacente = entradaAdj.getKey();
+
+                int pesoAdjacente = entradaAdj.getValue();
+
+                if (saborChave.compareTo(saborAdjacente) < 0) {
+                    listaArestas.add(new Aresta(saborChave, saborAdjacente, pesoAdjacente));
+                }
+            }
+        }
+
+        // ordenar arestas por peso decrescente usando ordenação selection sort.
+        Ordenacao.selectionSort(listaArestas, (a, b) -> Integer.compare(b.peso, a.peso));
+
+        System.out.println("Ligações entre os sabores (co-ocorrências em pizzas meio a meio):");
+        if (listaArestas.isEmpty()) {
+            System.out.println("Nenhuma ligação encontrada (pizzas com 1 sabor ou sem pedidos).");
+        } else {
+            for (Aresta aresta : listaArestas) {
+                System.out.println("- " + aresta.saborOrigem + " -- " + aresta.saborDestino + " : " + aresta.peso + " vezes");
+            }
+        }
+
+        System.out.println();
     }
 
     private static void gerarListaClientes(List<Cliente> listaClientes) {
@@ -306,6 +419,23 @@ public class Pizzaria {
         }
         System.out.println("Total de clientes: " + listaClientes.size());
         System.out.println();
+    }
+
+    private static double calcularFrete(double distanciaEmKm, int quantidadePizzas) {
+        // Tabela de preços para cálculo de frete
+        double valorPorKm = 2.5; // R$ 2,50 por km
+        double valorPorPizza = 3.0; // R$ 3,00 por pizza
+
+        // Calcular frete por distância
+        double freteDistancia = distanciaEmKm * valorPorKm;
+
+        // Calcular frete por peso (quantidade de pizzas)
+        double fretePeso = quantidadePizzas * valorPorPizza;
+
+        // Frete total é a soma dos dois componentes
+        double freteTotal = freteDistancia + fretePeso;
+
+        return freteTotal;
     }
 
     // Métodos auxiliares para melhorar feedback de ação e retorno
